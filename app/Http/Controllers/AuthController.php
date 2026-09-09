@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Traits\ResponseTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -10,6 +11,8 @@ use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
+    use ResponseTrait;
+
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -26,10 +29,10 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        return $this->successResponse([
             'user' => $user,
             'token' => $token,
-            'token_type' => 'Bearer',
+            'token_type' => 'Bearer ',
         ], 201);
     }
 
@@ -41,18 +44,16 @@ class AuthController extends Controller
         ]);
 
         if (! Auth::attempt($credentials)) {
-            return response()->json([
-                'message' => 'Invalid credentials.',
-            ], 401);
+            return $this->errorResponse(null, 'Invalid credentials', 401);
         }
 
         $user = User::where('email', $credentials['email'])->firstOrFail();
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json([
+        return $this->successResponse([
             'user' => $user,
             'token' => $token,
-            'token_type' => 'Bearer',
+            'token_type' => 'Bearer ',
         ]);
     }
 
@@ -60,13 +61,11 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json([
-            'message' => 'Logged out successfully.',
-        ]);
+        return $this->successResponse(null, 'Logged out successfully');
     }
 
     public function profile(Request $request)
     {
-        return response()->json($request->user());
+        return $this->successResponse(['user' => $request->user()]);
     }
 }
