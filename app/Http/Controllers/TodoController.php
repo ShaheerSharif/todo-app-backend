@@ -3,17 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Todo;
+use App\Services\TodoService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class TodoController extends Controller
 {
+    public function __construct(private TodoService $todoService) {}
+
     public function index(Request $request)
     {
-        $todos = $request->user()
-            ->todos()
-            ->latest()
-            ->paginate(15);
+        $todos = $this->todoService->getAllForUser($request->user());
 
         return response()->json($todos);
     }
@@ -27,21 +27,21 @@ class TodoController extends Controller
             'due_at' => ['nullable', 'date'],
         ]);
 
-        $todo = $request->user()->todos()->create($validated);
+        $todo = $this->todoService->create($request->user(), $validated);
 
         return response()->json($todo, 201);
     }
 
     public function show(Request $request, Todo $todo)
     {
-        $this->authorizeTodo($request, $todo);
+        $this->todoService->authorizeTodo($todo, $request->user());
 
         return response()->json($todo);
     }
 
     public function update(Request $request, Todo $todo)
     {
-        $this->authorizeTodo($request, $todo);
+        $this->todoService->authorizeTodo($todo, $request->user());
 
         $validated = $request->validate([
             'title' => ['sometimes', 'required', 'string', 'max:40'],
@@ -51,34 +51,17 @@ class TodoController extends Controller
             'due_at' => ['nullable', 'date'],
         ]);
 
-        // Keep completed_at in sync with is_completed
-        if (array_key_exists('is_completed', $validated)) {
-            $validated['completed_at'] = $validated['is_completed']
-                ? now()
-                : null;
-        }
-
-        $todo->update($validated);
+        $todo = $this->todoService->update($todo, $validated);
 
         return response()->json($todo);
     }
 
     public function destroy(Request $request, Todo $todo)
     {
-        $this->authorizeTodo($request, $todo);
+        $this->todoService->authorizeTodo($todo, $request->user());
 
-        $todo->delete();
+        $this->todoService->delete($todo);
 
         return response()->json(null, 204);
-    }
-
-    /**
-     * Ensure the todo belongs to the authenticated user.
-     */
-    private function authorizeTodo(Request $request, Todo $todo): void
-    {
-        if ($todo->user_id !== $request->user()->id) {
-            abort(403, 'You do not own this todo.');
-        }
     }
 }
