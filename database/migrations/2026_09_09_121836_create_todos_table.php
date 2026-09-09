@@ -15,26 +15,21 @@ return new class extends Migration
             $table->id();
 
             $table->foreignId('user_id')
-                ->nullable(false)
                 ->references('id')
                 ->on('users')
                 ->onDelete('cascade')
                 ->onUpdate('cascade');
 
-            $table->string('title', 40)
-                ->index('idx_todos_title')
-                ->nullable(false);
+            $table->string('title', 40)->index('idx_todos_title');
 
-            $table->text('description');
+            $table->text('description')->nullable();
 
             $table->enum('priority', ['low', 'medium', 'high'])->default('medium');
 
-            $table->boolean('is_completed')
-                ->default(false)
-                ->nullable(false);
+            $table->boolean('is_completed')->default(false);
 
-            $table->dateTime('due_at');
-            $table->dateTime('completed_at');
+            $table->dateTime('due_at')->nullable();
+            $table->dateTime('completed_at')->nullable();
             $table->timestamps();
         });
     }
