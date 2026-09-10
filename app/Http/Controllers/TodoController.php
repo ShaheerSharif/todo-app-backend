@@ -9,11 +9,18 @@ use Illuminate\Validation\Rule;
 
 class TodoController extends Controller
 {
-    public function __construct(private TodoService $todoService) {}
+    public function __construct(private TodoService $todoService)
+    {
+        $this->todoService = $todoService;
+    }
 
     public function index(Request $request)
     {
-        $todos = $this->todoService->getAllForUser($request->user());
+        $validated = $request->validate([
+            'is_completed' => ['sometimes', 'boolean'],
+        ]);
+
+        $todos = $this->todoService->getAllForUser($request->user(), $validated);
 
         return $this->successResponse(['todos' => $todos]);
     }

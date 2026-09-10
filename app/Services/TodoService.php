@@ -8,11 +8,15 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class TodoService
 {
-    public function getAllForUser(User $user, int $perPage = 15)
+    public function getAllForUser(User $user, array $attrs = [], int $perPage = 15)
     {
-        return $user->todos()
-            ->latest()
-            ->paginate($perPage);
+        $query = $user->todos()->latest();
+
+        if (array_key_exists('is_completed', $attrs) && $attrs['is_completed'] !== null) {
+            $query->where('is_completed', $attrs['is_completed']);
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function create(User $user, array $data): Todo
