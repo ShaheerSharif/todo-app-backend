@@ -6,7 +6,6 @@ use App\Models\Todo;
 use App\Services\TodoService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class TodoController extends Controller
 {
@@ -33,48 +32,42 @@ class TodoController extends Controller
         return $this->successResponse(['todo' => $todo], 201);
     }
 
-    public function show(Request $request, Todo $todo)
+    public function show(Request $request, int $id)
     {
-        try {
-            $this->todoService->authorizeTodo($todo, $request->user());
+        $todo = Todo::find($id);
 
-            return $this->successResponse(['todo' => $todo]);
-        } catch (AccessDeniedHttpException $e) {
-            return $this->errorResponse(null, 401, 'Access denied');
-        }
+        $this->todoService->authorizeTodo($todo, $request->user());
+
+        return $this->successResponse(['todo' => $todo]);
     }
 
-    public function update(Request $request, Todo $todo)
+    public function update(Request $request, int $id)
     {
-        try {
-            $this->todoService->authorizeTodo($todo, $request->user());
+        $todo = Todo::find($id);
 
-            $validated = $request->validate([
-                'title' => ['sometimes', 'required', 'string', 'max:40'],
-                'description' => ['nullable', 'string'],
-                'priority' => ['sometimes', Rule::in(['low', 'medium', 'high'])],
-                'is_completed' => ['sometimes', 'boolean'],
-                'due_at' => ['nullable', 'date'],
-            ]);
+        $this->todoService->authorizeTodo($todo, $request->user());
 
-            $todo = $this->todoService->update($todo, $validated);
+        $validated = $request->validate([
+            'title' => ['sometimes', 'required', 'string', 'max:40'],
+            'description' => ['nullable', 'string'],
+            'priority' => ['sometimes', Rule::in(['low', 'medium', 'high'])],
+            'is_completed' => ['sometimes', 'boolean'],
+            'due_at' => ['nullable', 'date'],
+        ]);
 
-            return $this->successResponse(['todo' => $todo]);
-        } catch (AccessDeniedHttpException $e) {
-            return $this->errorResponse(null, 401, 'Access denied');
-        }
+        $todo = $this->todoService->update($todo, $validated);
+
+        return $this->successResponse(['todo' => $todo]);
     }
 
-    public function destroy(Request $request, Todo $todo)
+    public function destroy(Request $request, int $id)
     {
-        try {
-            $this->todoService->authorizeTodo($todo, $request->user());
+        $todo = Todo::find($id);
 
-            $this->todoService->delete($todo);
+        $this->todoService->authorizeTodo($todo, $request->user());
 
-            return $this->successResponse(null, 204);
-        } catch (AccessDeniedHttpException $e) {
-            return $this->errorResponse(null, 401, 'Access denied');
-        }
+        $this->todoService->delete($todo);
+
+        return $this->successResponse(null, 204);
     }
 }

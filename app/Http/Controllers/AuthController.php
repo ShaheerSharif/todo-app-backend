@@ -31,8 +31,7 @@ class AuthController extends Controller
 
         return $this->successResponse([
             'user' => $user,
-            'token' => $token,
-            'token_type' => 'Bearer ',
+            'token' => 'Bearer ' . $token,
         ], 201);
     }
 
@@ -52,8 +51,7 @@ class AuthController extends Controller
 
         return $this->successResponse([
             'user' => $user,
-            'token' => $token,
-            'token_type' => 'Bearer ',
+            'token' => 'Bearer ' . $token,
         ]);
     }
 
@@ -61,7 +59,7 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
 
-        return $this->successResponse(null, 'Logged out successfully');
+        return $this->successResponse(null, 200);
     }
 
     public function profile(Request $request)
