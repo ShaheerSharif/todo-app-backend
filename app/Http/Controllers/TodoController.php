@@ -36,6 +36,10 @@ class TodoController extends Controller
     {
         $todo = Todo::find($id);
 
+        if (empty($todo) || $todo == null) {
+            return $this->errorResponse(null, 404, 'Todo not found');
+        }
+
         $this->todoService->authorizeTodo($todo, $request->user());
 
         return $this->successResponse(['todo' => $todo]);
@@ -44,6 +48,10 @@ class TodoController extends Controller
     public function update(Request $request, int $id)
     {
         $todo = Todo::find($id);
+
+        if (empty($todo) || $todo == null) {
+            return $this->errorResponse(null, 404, 'Todo not found');
+        }
 
         $this->todoService->authorizeTodo($todo, $request->user());
 
@@ -63,6 +71,10 @@ class TodoController extends Controller
     public function destroy(Request $request, int $id)
     {
         $todo = Todo::find($id);
+
+        if (empty($todo) || $todo == null) {
+            return $this->errorResponse(null, 404, 'Todo not found');
+        }
 
         $this->todoService->authorizeTodo($todo, $request->user());
 
